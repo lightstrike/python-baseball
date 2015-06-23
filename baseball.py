@@ -20,11 +20,11 @@ def get_game_url(game_date):
     return baseball_url
 
 
-def get_game_data():
+def get_game_data(days_ago=1):
     """
     Add date argument at some point
     """
-    game_date = datetime.now() - timedelta(days=1)
+    game_date = datetime.now() - timedelta(days=days_ago)
     request_url = get_game_url(game_date)
     baseball_data = requests.get(request_url)
     game_data = baseball_data.json()
@@ -33,13 +33,16 @@ def get_game_data():
 
 
 def find_winner(team, game_data):
-    game_score = [{g['home_name_abbrev']:g['linescore']['r']['home'], g['away_name_abbrev']:g['linescore']['r']['away']} for g in game_data if team in (g['home_name_abbrev'] or g['away_name_abbrev'])]
+    try:
+        game_score = [{g['home_name_abbrev']:int(g['linescore']['r']['home']), g['away_name_abbrev']:int(g['linescore']['r']['away'])} for g in game_data if (team in g['home_name_abbrev'] or team in g['away_name_abbrev'])]
 
-    runs_scored = game_score[0][team]
-    if runs_scored is max(game_score[0].values()) and runs_scored >= 6:
-        message = "Yankees won! Use YANKEES6 at www.papajohns.com for 50% off! :-)" 
-    else:
-        message = "No luck today, Yankees lost."
+        runs_scored = game_score[0][team]
+        if runs_scored is max(game_score[0].values()) and runs_scored >= 6:
+            message = "Yankees won! Use YANKEES6 at www.papajohns.com for 50% off! :-)"
+        else:
+            message = "No luck today, Yankees lost."
+    except Exception as e:
+        message = e
     return message
 
 
